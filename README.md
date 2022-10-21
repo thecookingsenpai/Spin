@@ -4,13 +4,13 @@
 
 ### Introduction
 
-Spin is a template that allows you to start a simple Electron application with included a boilerplate code that contains methods for managing multithreading processes in a simple way.
+Spin is a codebase that allows you to start a simple Electron application with included a template code that contains methods for **managing multithreading processes** in a simple way.
 
 Some of the methods are related to code execution, others allows also to customize the page HTML in the children processes.
 
 ### Architecture
 
-The project makes an extensive use of the worker_threads npm module, available in all the modern npm versions.
+The project makes an extensive use of the **worker_threads** npm module, available in all the modern npm versions.
 
 The majority of the code is in main.js, enclosed in a SECTION comment tag and commented. In the included worker example script, you can easily examine and apply Spin methods to your project.
 
@@ -18,7 +18,9 @@ The majority of the code is in main.js, enclosed in a SECTION comment tag and co
 
 in main.js, after creating a window, you can add something like:
 
+```javascript
     start_subroutine("process", "./process.js", { })
+```
 
 Now the code in process.js will be executed and a listener will be added to
 monitor messages from process.js .
@@ -27,10 +29,12 @@ In process.js you can write whatever you like but you have to include Spin code 
 
 You can use a code like this to communicate from process.js to the main process:
 
+```javascript
     let message_id = getHTML("id_in_html")
     let status
     let html_received
     [status, html_received] = waitForResponse(message_id, 5000)
+```
 
 This way you are using the included code to get the html of an element with the specified HTML id field. You are setting 5000 ms (5 seconds) as the timeout. Status will be returned as true and the response or as false and the error message.
 
@@ -43,15 +47,18 @@ To do this, follow the instructions in the next paragraph.
 
 The main.js code contains a method called parseMessage, which is called when the message from the worker is received. You are free to edit or add a condition like:
 
+```javascript
     else if (type == "your_customized_type") {
         // Do something
         return true, "Your customized response"
     }
+```
 
 As you can see, the only required part is the return value defined as a boolean plus the message (it can be false plus error message too, of course).
 
 As a last step, you can use your customized handle in your worker code, for example doing the following:
 
+```javascript
     function myFunction() {
         let payload = {
         "type": 'your_customized_type',
@@ -61,18 +68,22 @@ As a last step, you can use your customized handle in your worker code, for exam
         let msg_id = send_message(payload)
         return msg_id
     }
+```
 
 Then you can use that function in the same way as a built-in Spin function:
 
+```javascript
     let msg_id = myFunction()
     let status
     let response
     [status, response] = waitForResponse(msg_id, 1000)
+```
 
 ### Managing the messages from the main process
 
 As you can easily see, the worker process contains the start() method which is called when the script is started. You can play with this but remember to keep the included code to be executed as soon as possible:
 
+```javascript
     function start () {
         // NOTE Handling messages from the main process
         parentPort.on('message', (message) => {
@@ -80,19 +91,26 @@ As you can easily see, the worker process contains the start() method which is c
         let j_message = JSON.parse(message.toString('utf8'))
         parse_message(j_message)
     });
+```
 
 The parse_message(message) function is called every time the main process
 send a message to the worker. By default, the method parses the message and if type is "response", it looks for the message id field in the message. If the message id is found in the waiting queue dictionary:
 
+```javascript
     messages_awaiting[id]
+```
 
 And its response value is null:
 
+```javascript
     messages_awaiting[id].response==null
+```
 
 The method assign to the response field of the waiting queue dictionary the message contained in the message from main process:
 
+```javascript
     messages_awaiting[id].response = JSON.stringify(message)
+```
 
 The above code is already included and is reported just to illustrate the mechanism behind what happens.
 
@@ -100,10 +118,12 @@ From your code, you can then check in any way you want the response field of the
 
 In main.js, of course, you will need to insert a code corresponding to your custom handler, as:
 
+```javascript
     subroutine["routine_name"].postMessage(JSON.stringify({
         "type": "your_type",
         "your_field": "your_content"
     }))
+```
 
 For example in a specific method, or on a specific condition.
 
