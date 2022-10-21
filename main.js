@@ -38,10 +38,22 @@ function start_subroutine(name, path, data) {
     else {
       console.log("[+] Message from " + name + " parsed")
     }
-    // Send the response back
-    let payload = '{ "type": "response", "id": "' + msg_id + '", "result": "' + result + '", "message": "' + message + '"}'
-    console.log("[*] Sending response: " + JSON.stringify(payload))
-    subroutines[name].postMessage(JSON.stringify(payload))
+    // Send the response back solving promises if any
+    solved = null
+    if (message.toString().includes("Promise")) {
+      // In case of promise, solve it and send it
+      message.then((value) => {
+        console.log("Promise resolved: " + value)
+        let payload = '{ "type": "response", "id": "' + msg_id + '", "result": "' + result + '", "message": "' + value + '"}'
+        console.log("[*] Sending response: " + JSON.stringify(payload))
+        subroutines[name].postMessage(JSON.stringify(payload))
+      })
+    } else {
+      // In case of normal message, send it
+      let payload = '{ "type": "response", "id": "' + msg_id + '", "result": "' + result + '", "message": "' + message + '"}'
+      console.log("[*] Sending response: " + JSON.stringify(payload))
+      subroutines[name].postMessage(JSON.stringify(payload))
+    }
   })
 }
 
@@ -81,6 +93,8 @@ function parseMessage (j_response, sender) {
   // NOTE Changing style of an existing element
   else if (type == "style") {
     let element = j_response.element
+    let property = j_response.property
+    let value = j_response.value
     console.log("[*] Styling")
     // Loading element to replace
     console.log("Element: " + element)
@@ -88,7 +102,7 @@ function parseMessage (j_response, sender) {
     let newProperty = j_response.property.replace("'", '"')
     console.log("Property: " + newProperty)
     // Executing the rendering command
-    let renderCmd = "document.getElementById('" + element + "').style = '" + newProperty + "'"
+    let renderCmd = "document.getElementById('" + element + "').style." + property + "='" + value + "'"
     console.log(renderCmd)
     mainWindow.webContents.executeJavaScript(renderCmd)
     console.log("[+] Styled")
@@ -100,7 +114,7 @@ function parseMessage (j_response, sender) {
     let command = j_response.command
     console.log("[*] Executing")
     console.log(command)
-    mainWindow.webContents.executeJavaScript(command)
+    mainWindow.webContents.executeJavaScript(command + ";")
     console.log("[+] Executed")
     return ["ok", "Executed"]
   }
@@ -108,9 +122,14 @@ function parseMessage (j_response, sender) {
   else if (type == "get") {
     let element = j_response.element
     console.log("[*] Getting " + element + " for renderer")
-    let gotHTML = mainWindow.webContents.executeJavaScript("document.getElementById('" + j_response.element + "').innerHTML")
+    let cmd = "document.getElementById('" + element + "');"
+    console.log(cmd)
+    let response = mainWindow.webContents.executeJavaScript("document.getElementById('" + element + "').innerHTML;")
     console.log("[+] Got " + element + " for renderer")
-    return ["ok", gotHTML]
+    console.log('[>] Returning ' + response)
+    return ["ok", response]
+
+                
   }
   else if (type == "info") {
     console.log("[i] Info from " + sender)
