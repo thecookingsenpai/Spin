@@ -21,23 +21,27 @@ function start_subroutine(name, path, data) {
     console.log(j_message)
     // Extract the message id
     let msg_id = j_message.id
+    console.log("ID: " + msg_id)
     var result;
     var message;
     // Send it to the parser
-    result, message = parseMessage(j_message, name)
+    var packed = parseMessage(j_message, name)
+    result = packed[0]
+    message = packed[1]
+    console.log(result)
+    console.log(message)
     // Manage errors
     if (result == "error") {
       console.log("[x] Error in " + name + ".js")
       alert("Error in the subroutine " + name + " at " + path + ": " + message)
     }
-    // Send the response back
-    let payload = {
-      "type": "response",
-      "id": msg_id,
-      "result": result,
-      "message": message
+    else {
+      console.log("[+] Message from " + name + " parsed")
     }
-    subroutines[name].postMessage(payload)
+    // Send the response back
+    let payload = '{ "type": "response", "id": "' + msg_id + '", "result": "' + result + '", "message": "' + message + '"}'
+    console.log("[*] Sending response: " + JSON.stringify(payload))
+    subroutines[name].postMessage(JSON.stringify(payload))
   })
 }
 
@@ -50,10 +54,13 @@ function parseMessage (j_response, sender) {
       [...] (properties of the above)
       }
       */
+  console.log("Parsing message from " + sender + ": " + JSON.stringify(j_response))
   let type = j_response.type
+  let id = j_response.id
   if (type == "error") {
     console.log("[x] Error in " + sender + ".js")
     console.log(j_response.message)
+    return ["error", j_response.message]
   }
   // NOTE Rendering an element (overwriting it if exists)
   else if (type == "render") {
@@ -69,7 +76,7 @@ function parseMessage (j_response, sender) {
     console.log(renderCmd)
     mainWindow.webContents.executeJavaScript(renderCmd)
     console.log("[+] Rendered")
-    return true, "Rendered"
+    return ["ok", "Rendered"]
   }
   // NOTE Changing style of an existing element
   else if (type == "style") {
@@ -85,7 +92,7 @@ function parseMessage (j_response, sender) {
     console.log(renderCmd)
     mainWindow.webContents.executeJavaScript(renderCmd)
     console.log("[+] Styled")
-    return true, "Styled"
+    return ["ok", "Styled"]
   }
   // NOTE Executing a js command
   // REVIEW Remember to sanitize it
@@ -95,7 +102,7 @@ function parseMessage (j_response, sender) {
     console.log(command)
     mainWindow.webContents.executeJavaScript(command)
     console.log("[+] Executed")
-    return true, "Executed"
+    return ["ok", "Executed"]
   }
   // NOTE Getting an existing element
   else if (type == "get") {
@@ -103,12 +110,12 @@ function parseMessage (j_response, sender) {
     console.log("[*] Getting " + element + " for renderer")
     let gotHTML = mainWindow.webContents.executeJavaScript("document.getElementById('" + j_response.element + "').innerHTML")
     console.log("[+] Got " + element + " for renderer")
-    return true, gotHTML
+    return ["ok", gotHTML]
   }
   else if (type == "info") {
     console.log("[i] Info from " + sender)
     console.log(j_response.message)
-    return true, "Info"
+    return ["ok", "Info"]
   }
 
 }

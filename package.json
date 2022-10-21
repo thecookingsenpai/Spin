@@ -36,6 +36,7 @@
     "nodemon": "^2.0.0"
   },
   "dependencies": {
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "observable-slim": "^0.1.6"
   }
 }
