@@ -1,7 +1,6 @@
 // NOTE Loading modules (app and BrowserWindow) for main and rederer
 const {app, BrowserWindow} = require('electron')
 const { Worker } = require('worker_threads')
-const { exec } = require('child_process');
 
 // SECTION Subroutine management
 
