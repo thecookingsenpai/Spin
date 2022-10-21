@@ -36,10 +36,10 @@ You can use a code like this to communicate from process.js to the main process:
 
 This way you are using the included code to get the html of an element with the specified HTML id field. The response is managed by the parse_message method that is triggered each time a message from main is received.
 
-As you already know your message_id, you can use the check_response method to determine when the response is ready without blocking the script, as shown in the worker_template.js example:
+As you already know your message_id, you can use the check_response method to determine which is the response of the main process:
 
     ```javascript
-    check_response(message_id, callback_method);
+    let response = check_response(message_id, callback_method);
     ```
 
 Take into account that callback_method can be any method ( with or without parameters ) that you want to define. The only requirement is accepting a first parameter with the message id as check_response will pass it to the method. Having the response stored into messages_awaiting, you can do something like this:
@@ -49,6 +49,7 @@ Take into account that callback_method can be any method ( with or without param
         print("[*] I am printing the result: " + messages_awaiting[message_id]);
     }
     ```
+As a living example, the send_message method uses check_response with a method that prints the result to the console, to ensure that the message has been properly received.
 
 On another hand, you can write your own methods to send and receive messages
 to and from the main process.
