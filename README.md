@@ -140,6 +140,24 @@ subroutine["routine_name"].postMessage(JSON.stringify({
 
 For example in a specific method, or on a specific condition.
 
+### Proof of Concept
+
+To better illustrate how this codebase works, let's make an example.
+By using the following methods in your worker file (e.g. worker_template.js) inside the start() method:
+
+```javascript
+  setHTML("editable", "<h2>2D Engine test</h2>")
+  setBackgroundStyle("backgroundColor", "red")
+  setBackgroundStyle("width", "90%")
+  setBackgroundStyle("height", "75vh")
+  setBackgroundStyle( "border", "1px solid navy")
+  setStyle("background", "margin", "auto")
+```
+
+You will obtain:
+
+![alt text](https://raw.githubusercontent.com/thecookingsenpai/Spin/main/poc.png)
+
 ### Recommendations
 
 - Adding custom handlers requires paying attention to existing ones and to code organization. It is very easy to implement too many custom handlers and to ending up making the code's complexity explode
