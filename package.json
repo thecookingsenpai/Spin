@@ -1,0 +1,49 @@
+{
+  "appId": "com.electron.uefa",
+  "name": "uefa",
+  "version": "1.0.0",
+  "description": "DeFiNe",
+  "main": "main.js",
+  "files": [
+    "!lessons/**/*",
+    "!dist/**/*"
+  ],
+  "mac": {
+    "target": "dmg",
+    "icon": "build/icon.icns",
+    "category": "public.app-category.finance"
+  },
+  "win": {
+    "target": "nsis",
+    "icon": "build/icon.ico",
+    "requestedExecutionLevel": "highestAvailable"
+  },
+  "linux": {
+    "target": "AppImage",
+    "icon": "build/icon.png"
+  },
+  "scripts": {
+    "start": "electron .",
+    "watch": "nodemon --exec electron .",
+    "reset": "git reset --hard"
+  },
+  "keywords": [
+    "Electron",
+    "web3 Electron",
+    "defi"
+  ],
+  "author": "TCSenpai",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "latest",
+    "nodemon": "^2.0.0"
+  },
+  "dependencies": {
+    "crypto-js": "^4.1.1",
+    "dialogs": "^2.0.1",
+    "electron-photon": "^1.1.6",
+    "ethers": "^5.7.1",
+    "fs": "^0.0.1-security",
+    "telegraf": "^4.10.0"
+  }
+}
