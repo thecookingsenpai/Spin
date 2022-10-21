@@ -25,7 +25,7 @@ String.prototype.hashCode = function() {
 }
 
 // NOTE Sending messages to the main process
-function send_message(message) {
+function send_message(message, callback=null) {
   // Adding the message id to the message
   let _message = JSON.stringify(message)
   let msg_id = _message.hashCode()
@@ -40,6 +40,11 @@ function send_message(message) {
   // Sending as a string
   parentPort.postMessage(string_message)
   // Allowing the calling function to wait for the response
+  if(callback) {
+    check_response(msg_id, callback)
+  } else {
+    check_response(msg_id, react_to_response)
+  }
   return msg_id
 }
 
@@ -80,45 +85,42 @@ function parse_message(message_str) {
 
 // NOTE Checking if the response is ready and calling the callback function
 function check_response(message_id, callback) {
-  // Setting a listener for the response readiness
-  ready_responses[message_id] = new Proxy( {ready: false}, { 
-    set (target, prop, val) {
-      console.log("[*] Response ready for message " + message_id)
-      target[prop] = val;
-      callback(message_id)
-      return messages_awaiting[message_id].response
-    }
-  });
+  try {
+    // Recalled response
+    if(ready_responses[message_id].ready) {
+        callback(message_id)
+        return messages_awaiting[message_id].response
+    } 
+  }
+  catch(err) {
+    // Setting a listener for the response readiness
+    ready_responses[message_id] = new Proxy( {ready: false}, { 
+      set (target, prop, val) {
+        console.log("[*] Response ready for message " + message_id)
+        target[prop] = val;
+        callback(message_id)
+        return messages_awaiting[message_id].response
+      }
+    });
+  }
 }
-
     
 // !SECTION Utilities
 
 // SECTION Methods to operate on the page background
 // REVIEW Remove the methods you won't use, as those are just examples
 
-function setBackgroundImage(imagefile) {
-    // NOTE Setting a new background image over existing one
-    let cmd = "background-image: url('" + imagefile + "');"
-    let payload = {
-        "type": "style",
-        "property": cmd,
-        "element": "background"
-    }
-    let msg_id = send_message(payload)
-    return msg_id
-}
-
 function setBackgroundStyle(property, value) {
-  let cmd = property + ": " + value + ";"
   let payload = {
     "type": "style",
-    "property": cmd,
-    "element": "background"
+    "element": "background",
+    "property": property,
+    "value": value
   }
   let msg_id = send_message(payload)
   return msg_id
 }
+
 
 // !SECTION Background methods
 
@@ -129,8 +131,9 @@ function setStyle(element, property, value) {
   let cmd = property + ": " + value + ";"
   let payload = {
     "type": "style",
-    "property": cmd,
-    "element": element
+    "element": element,
+    "property": property,
+    "value": value
   }
   let msg_id = send_message(payload)
   return msg_id
@@ -180,7 +183,6 @@ function start () {
   // NOTE Examples
   let msg_id = setHTML("editable", "<h2>Hello world!</h2>")
   console.log("[-] Waiting for response " + msg_id)
-  check_response(msg_id, react_to_response)
 
 }
 
